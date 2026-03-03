@@ -1,208 +1,184 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="manifest" href="./manifest.json" />
-<meta name="theme-color" content="#16a34a" />
-<title>🧶 Dolce JIN Crochet</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flip Counter</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
 <style>
-  html, body {margin:0; padding:0; background:#fff; font-family:monospace; text-align:center;}
-  #canvas {border:1px solid #ccc; margin:10px auto; display:block;}
-  #svgOut {max-width:900px; margin:20px auto; display:block;}
-  #saveBtn, #uploadBtn {
-    position:fixed; bottom:20px;
-    background:#16a34a; color:#fff; border:none;
-    padding:10px 16px; font-size:13px; border-radius:6px;
-    box-shadow:0 2px 5px rgba(0,0,0,0.2); cursor:pointer;
-  }
-  #saveBtn { right:20px; }
-  #uploadBtn { left:20px; background:#2563eb; }
+html,body{
+  margin:0;
+  padding:0;
+  background:#000;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+.topbar{
+  text-align:center;
+  padding:2vh 0;
+}
+
+.topbar button{
+  background:#222;
+  color:#fff;
+  border:1px solid #333;
+  font-size:4.5vw;
+  padding:2vw 4vw;
+  margin:1vw;
+}
+
+.section{
+  text-align:center;
+  padding-top:3vh;
+}
+
+h2{
+  font-size:8vw;
+  margin-bottom:3vh;
+}
+
+.row{
+  display:flex;
+  justify-content:center;
+  gap:4vw;
+}
+
+.box{
+  width:22vw;
+  height:30vh;
+  border:1px solid #333;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.arrow{
+  font-size:10vw;
+  width:100%;
+  background:none;
+  border:none;
+  color:#ff9aa2;
+}
+
+.digit{
+  font-size:15vw;
+}
+
+.footer{
+  position:fixed;
+  bottom:1vh;
+  width:100%;
+  text-align:center;
+  font-size:3vw;
+  color:#555;
+}
 </style>
 </head>
 <body>
 
-<!-- 국제 표준 뜨개기호 -->
-<svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <symbol id="st-chain" viewBox="0 0 20 20">
-      <circle cx="10" cy="10" r="6" stroke="#2563eb" stroke-width="1.5" fill="none"/>
-    </symbol>
-    <symbol id="st-sc" viewBox="0 0 20 20">
-      <path d="M10 2 V18" stroke="#444" stroke-width="1.5"/>
-      <path d="M5 10 H15" stroke="#444" stroke-width="1.5"/>
-    </symbol>
-    <symbol id="st-dc" viewBox="0 0 20 20">
-      <path d="M10 2 V18" stroke="#2b6cb0" stroke-width="1.5"/>
-      <path d="M5 10 H15" stroke="#2b6cb0" stroke-width="1.5"/>
-      <path d="M10 10 V18" stroke="#2b6cb0" stroke-width="1.5"/>
-    </symbol>
-    <symbol id="st-inc" viewBox="0 0 20 20">
-      <path d="M5 15 L10 5 L15 15" stroke="#16a34a" stroke-width="1.5" fill="none"/>
-    </symbol>
-    <symbol id="st-dec" viewBox="0 0 20 20">
-      <path d="M5 5 L10 15 L15 5" stroke="#dc2626" stroke-width="1.5" fill="none"/>
-    </symbol>
-    <symbol id="st-slst" viewBox="0 0 20 20">
-      <circle cx="10" cy="10" r="2" stroke="#999" stroke-width="1.5" fill="none"/>
-    </symbol>
-  </defs>
-</svg>
+<div class="topbar">
+  <button onclick="saveAll()">저장</button>
+  <button onclick="loadAll()">불러오기</button>
+  <button onclick="resetAll()">초기화</button>
+</div>
 
-<h3>🧶 Jini Crochet Pattern (App)</h3>
-<input type="file" id="fileInput" accept="image/*" style="margin:10px auto; display:block;" />
-<canvas id="canvas" width="800" height="800"></canvas>
+<div class="section">
+  <h2>단수</h2>
+  <div class="row" id="row">
+    <div class="box">
+      <button class="arrow" onclick="change(this,100)">▲</button>
+      <div class="digit">0</div>
+      <button class="arrow" onclick="change(this,-100)">▼</button>
+    </div>
+    <div class="box">
+      <button class="arrow" onclick="change(this,10)">▲</button>
+      <div class="digit">0</div>
+      <button class="arrow" onclick="change(this,-10)">▼</button>
+    </div>
+    <div class="box">
+      <button class="arrow" onclick="change(this,1)">▲</button>
+      <div class="digit">0</div>
+      <button class="arrow" onclick="change(this,-1)">▼</button>
+    </div>
+  </div>
+</div>
 
-<svg id="legend" xmlns="http://www.w3.org/2000/svg" width="700" height="120" viewBox="0 0 700 120"
-     style="margin:20px auto; display:block; border:1px solid #ddd; border-radius:6px;">
-  <text x="15" y="20" font-size="14" font-family="monospace" fill="#000">🧶 스티치 기호 안내</text>
-  <use href="#st-chain" x="20" y="40" width="20" height="20" stroke="#2563eb" />
-  <text x="50" y="52" font-size="12" fill="#2563eb">사슬뜨기 (Chain)</text>
-  <use href="#st-sc" x="20" y="70" width="20" height="20" stroke="#444" />
-  <text x="50" y="82" font-size="12" fill="#444">짧은뜨기 (Single)</text>
-  <use href="#st-dc" x="220" y="40" width="20" height="20" stroke="#2b6cb0" />
-  <text x="250" y="52" font-size="12" fill="#2b6cb0">한길긴뜨기 (Double)</text>
-  <use href="#st-inc" x="220" y="70" width="20" height="20" stroke="#16a34a" />
-  <text x="250" y="82" font-size="12" fill="#16a34a">늘림 (Increase)</text>
-  <use href="#st-dec" x="420" y="40" width="20" height="20" stroke="#dc2626" />
-  <text x="450" y="52" font-size="12" fill="#dc2626">줄임 (Decrease)</text>
-  <use href="#st-slst" x="420" y="70" width="20" height="20" stroke="#999" />
-  <text x="450" y="82" font-size="12" fill="#999">빼뜨기 (Slip)</text>
-</svg>
+<div class="section">
+  <h2>코수</h2>
+  <div class="row" id="stitch">
+    <div class="box">
+      <button class="arrow" onclick="change(this,100)">▲</button>
+      <div class="digit">0</div>
+      <button class="arrow" onclick="change(this,-100)">▼</button>
+    </div>
+    <div class="box">
+      <button class="arrow" onclick="change(this,10)">▲</button>
+      <div class="digit">0</div>
+      <button class="arrow" onclick="change(this,-10)">▼</button>
+    </div>
+    <div class="box">
+      <button class="arrow" onclick="change(this,1)">▲</button>
+      <div class="digit">0</div>
+      <button class="arrow" onclick="change(this,-1)">▼</button>
+    </div>
+  </div>
+</div>
 
-<svg id="svgOut" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"></svg>
-<button id="saveBtn">💾 저장</button>
-<button id="uploadBtn">📁 불러오기</button>
+<div class="footer">
+  © 2026 Studio Y.Green. All rights reserved.
+</div>
 
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('./service-worker.js', { scope: './' })
-      .then(() => console.log('🧶 Service Worker registered'))
-      .catch(err => console.error('❌ SW failed', err));
-  });
+function getValue(section){
+  const d=document.querySelector("#"+section).querySelectorAll(".digit");
+  return d[0].textContent*100 + d[1].textContent*10 + d[2].textContent*1;
 }
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const svg = document.getElementById('svgOut');
-let uploadedImgSrc = null;
-
-document.getElementById('uploadBtn').onclick = () => document.getElementById('fileInput').click();
-document.getElementById('fileInput').onchange = e => {
-  const file = e.target.files[0];
-  if (file) loadImage(file);
-};
-
-function loadImage(file){
-  const img = new Image();
-  img.onload = () => {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    const scale = Math.min(canvas.width/img.width, canvas.height/img.height);
-    const w = img.width * scale, h = img.height * scale;
-    ctx.drawImage(img,0,0,w,h);
-    uploadedImgSrc = canvas.toDataURL("image/png");
-    convertToPattern(w,h);
-  };
-  img.src = URL.createObjectURL(file);
+function setValue(section,value){
+  const d=document.querySelector("#"+section).querySelectorAll(".digit");
+  const s=String(value).padStart(3,'0');
+  d[0].textContent=s[0];
+  d[1].textContent=s[1];
+  d[2].textContent=s[2];
 }
 
-function convertToPattern(w=800,h=800){
-  const imgData = ctx.getImageData(0,0,w,h);
-  const data = imgData.data;
-  let path="";
-  const step = Math.max(10, Math.round(w/40));
-  for(let y=0; y<h; y+=step){
-    for(let x=0; x<w; x+=step){
-      const i = (Math.floor(y)*w + Math.floor(x))*4;
-      const avg = (data[i]+data[i+1]+data[i+2])/3;
-      const sym = pickSymbol(avg);
-      path += `<use href="#${sym}" x="${x}" y="${y}" width="20" height="20"/>`;
-    }
-  }
-  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-  svg.innerHTML = `<rect width="${w}" height="${h}" fill="#fff" stroke="#ddd"/>` + path;
+function change(btn,delta){
+  const id=btn.closest(".row").id;
+  let v=getValue(id);
+  v+=delta;
+  if(v<0)v=0;
+  if(v>999)v=999;
+  setValue(id,v);
 }
 
-function pickSymbol(bright){
-  if(bright<50) return "st-sc";
-  if(bright<90) return "st-dc";
-  if(bright<120) return "st-chain";
-  if(bright<150) return "st-inc";
-  return "st-dec";
+function saveAll(){
+  localStorage.setItem("row_saved", getValue("row"));
+  localStorage.setItem("stitch_saved", getValue("stitch"));
 }
 
-document.getElementById('saveBtn').onclick = async () => {
-  const name = prompt("저장할 파일 이름:");
-  if (!name) return;
+function loadAll(){
+  const r=parseInt(localStorage.getItem("row_saved")||0);
+  const s=parseInt(localStorage.getItem("stitch_saved")||0);
+  setValue("row",r);
+  setValue("stitch",s);
+}
 
-  const svgEl = document.getElementById('svgOut');
-  const viewBox = svgEl.getAttribute('viewBox') || '0 0 800 800';
-  const [ , , w, h ] = viewBox.split(' ').map(Number);
-  const imgSrc = uploadedImgSrc || canvas.toDataURL("image/png");
-
-  const defs = document.querySelector('svg defs')?.outerHTML || "";
-  const legend = document.getElementById('legend').outerHTML;
-
-  // SVG 저장용 (기존대로)
-  const additions = `
-    ${defs}
-    <g>
-      <image href="${imgSrc}" x="0" y="0" width="${w}" height="${h}" opacity="0.25"/>
-      ${svgEl.innerHTML}
-      <text x="20" y="20" font-size="14" fill="#444">✨앱 제작 : 연유진🧵</text>
-      <g transform="translate(0,${h + 20})">${legend}</g>
-    </g>
-  `;
-  const finalSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h + 140}">${additions}</svg>`;
-
-  const svgBlob = new Blob([finalSvg], {type:'image/svg+xml;charset=utf-8'});
-  const svgUrl = URL.createObjectURL(svgBlob);
-  const linkSvg = document.createElement('a');
-  linkSvg.href = svgUrl;
-  linkSvg.download = `${name}.svg`;
-  linkSvg.click();
-  URL.revokeObjectURL(svgUrl);
-
-  // PNG 저장용 — <image> 직접 로드
-  const bg = new Image();
-  const pngCanvas = document.createElement('canvas');
-  pngCanvas.width = w;
-  pngCanvas.height = h + 140;
-  const ctx2 = pngCanvas.getContext('2d');
-
-  bg.onload = () => {
-    ctx2.clearRect(0, 0, w, h + 140);
-    ctx2.globalAlpha = 0.25;
-    ctx2.drawImage(bg, 0, 0, w, h);
-    ctx2.globalAlpha = 1.0;
-
-    // SVG 기호와 텍스트를 이미지로 다시 로드
-    const overlay = new Image();
-    const overlayBlob = new Blob([svgEl.outerHTML], { type: 'image/svg+xml;charset=utf-8' });
-    const overlayUrl = URL.createObjectURL(overlayBlob);
-
-    overlay.onload = () => {
-      ctx2.drawImage(overlay, 0, 0);
-      ctx2.font = "14px monospace";
-      ctx2.fillStyle = "#444";
-      ctx2.fillText("✨앱 제작 : 연유진🧵", 20, 20);
-
-      pngCanvas.toBlob(blob => {
-        const pngUrl = URL.createObjectURL(blob);
-        const linkPng = document.createElement('a');
-        linkPng.href = pngUrl;
-        linkPng.download = `${name}.png`;
-        linkPng.click();
-        URL.revokeObjectURL(pngUrl);
-      }, 'image/png');
-      URL.revokeObjectURL(overlayUrl);
-    };
-    overlay.src = overlayUrl;
-  };
-  bg.src = imgSrc;
-};
+function resetAll(){
+  setValue("row",0);
+  setValue("stitch",0);
+}
 </script>
+
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
 </body>
 </html>
